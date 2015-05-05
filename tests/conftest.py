@@ -469,3 +469,17 @@ def pulse_resultset_consumer(request):
 @pytest.fixture
 def pulse_action_consumer(request):
     return pulse_consumer('job-actions', request)
+
+
+@pytest.fixture
+def mock_bug_suggestions(monkeypatch):
+    bs_obj = ["foo", "bar"]
+
+    from treeherder.model import bug_suggestions
+
+    def _get_bug_suggestions(params):
+        return bs_obj
+
+    monkeypatch.setattr(bug_suggestions, "get_bug_suggestions", _get_bug_suggestions)
+
+    return bs_obj
