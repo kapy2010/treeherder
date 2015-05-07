@@ -1184,15 +1184,12 @@ into chunks of chunk_size size. Returns the number of result sets deleted"""
                 # object is responsible for what error. If we validate here
                 # we can capture the error and associate it with the object
                 # and also skip it before generating any database errors.
-
             except JobDataError as e:
-
                 if 'id' in datum:
                     self.mark_object_error(datum['id'], str(e))
-
                 if raise_errors:
                     raise e
-
+                continue
             except Exception as e:
                 if 'id' in datum:
                     self.mark_object_error(
@@ -1202,8 +1199,9 @@ into chunks of chunk_size size. Returns the number of result sets deleted"""
                     )
                 if raise_errors:
                     raise e
-            else:
+                continue
 
+            try:
                 # json object can be successfully deserialized
                 # load reference data
                 job_guid = self._load_ref_and_job_data_structs(
@@ -1229,6 +1227,15 @@ into chunks of chunk_size size. Returns the number of result sets deleted"""
                         # coalesced to guid, coalesced guid
                         [job_guid, coalesced_guid]
                     )
+            except Exception as e:
+                if 'id' in datum:
+                    self.mark_object_error(
+                        datum['id'],
+                        u"Unknown error: {}: {}".format(
+                            e.__class__.__name__, unicode(e))
+                    )
+                if raise_errors:
+                    raise e
 
         # Store all reference data and retrieve associated ids
         id_lookups = self.refdata_model.set_all_reference_data()
